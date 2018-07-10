@@ -169,6 +169,14 @@ class PKCS115_SigScheme:
         # scheme like Bleichenbacher's (see http://www.mail-archive.com/cryptography@metzdowd.com/msg06537).
         # 
         return em1==em2_with_params or em1==em2_without_params
+
+    def private_encrypt(self, msg):
+        modBits = Crypto.Util.number.size(self._key.n)
+        k = ceil_div(modBits,8) # Convert from bits to bytes
+        PS = bchr(0xFF) * (k - len(msg) - 3)
+        m = self._key.decrypt(b("\x00\x01") + PS + bchr(0x00) + msg)
+        S = bchr(0x00)*(k-len(m)) + m
+        return S
     
 def EMSA_PKCS1_V1_5_ENCODE(hash, emLen, with_hash_parameters=True):
     """
